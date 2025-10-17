@@ -61,17 +61,25 @@ class NewsArticleAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('category', 'author')
 
+
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['name', 'article', 'is_approved', 'created_at']
     list_filter = ['is_approved', 'created_at']
     search_fields = ['name', 'email', 'content', 'article__title']
-    actions = ['approve_comments']
+    actions = ['approve_comments', 'reject_comments']
     
     def approve_comments(self, request, queryset):
-        queryset.update(is_approved=True)
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f'{updated} comments approved successfully.')
     approve_comments.short_description = "Approve selected comments"
+    
+    def reject_comments(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f'{updated} comments rejected.')
+    reject_comments.short_description = "Reject selected comments"
 
+    
 @admin.register(NewsletterSubscriber)
 class NewsletterSubscriberAdmin(admin.ModelAdmin):
     list_display = ['email', 'is_active', 'subscribed_at']
