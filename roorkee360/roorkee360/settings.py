@@ -55,6 +55,11 @@ MIDDLEWARE = [
 ]
 
 
+# Session settings (for view count tracking)
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = False
+
+
 ROOT_URLCONF = 'roorkee360.urls'
 
 TEMPLATES = [
