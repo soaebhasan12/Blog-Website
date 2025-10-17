@@ -1,0 +1,504 @@
+{% extends 'roorkee360/base.html' %}
+{% load static %}
+
+{% block title %}Search Results{% if query %} for "{{ query }}"{% endif %} - Roorkee360{% endblock %}
+
+{% block meta_description %}Search results{% if query %} for "{{ query }}"{% endif %} on Roorkee360. Find news articles, stories, and updates from Roorkee.{% endblock %}
+
+{% block meta_keywords %}search, Roorkee news, search results, {{ query }}{% endblock %}
+
+{% block body_class %}search-page{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<nav aria-label="breadcrumb" class="container py-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'news:home' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Search Results</li>
+    </ol>
+</nav>
+
+<!-- Search Header -->
+<section class="search-header py-4 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold text-center mb-4">Search Results</h1>
+                
+                <!-- Search Form -->
+                <form method="GET" action="{% url 'news:search' %}" class="search-form-large mb-4">
+                    <div class="input-group input-group-lg">
+                        <input type="search" name="q" class="form-control" 
+                               placeholder="Search for news, articles, stories..." 
+                               value="{{ query }}" aria-label="Search">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+
+                {% if query %}
+                <div class="text-center">
+                    <p class="text-muted mb-0">
+                        {% if articles %}
+                            Found <span class="fw-bold text-primary">{{ articles.paginator.count }}</span> 
+                            result{% if articles.paginator.count != 1 %}s{% endif %} for 
+                            <span class="fst-italic">"{{ query }}"</span>
+                        {% else %}
+                            No results found for <span class="fst-italic">"{{ query }}"</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Results -->
+<section class="search-results py-5">
+    <div class="container">
+        {% if query %}
+            {% if articles %}
+            <div class="row">
+                {% for article in articles %}
+                <div class="col-lg-6 mb-4">
+                    <div class="card article-card h-100 border-0 shadow-sm">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                                {% if article.featured_image %}
+                                <img src="{{ article.featured_image.url }}" class="img-fluid rounded-start h-100 w-100" 
+                                     alt="{{ article.featured_image_alt|default:article.title }}" 
+                                     style="object-fit: cover;">
+                                {% else %}
+                                <div class="bg-secondary h-100 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-newspaper fa-2x text-white-50"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <span class="badge bg-primary mb-2">{{ article.category.display_name }}</span>
+                                    <h3 class="h5 card-title">
+                                        <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">
+                                            {{ article.title }}
+                                        </a>
+                                    </h3>
+                                    <p class="card-text text-muted small">
+                                        {{ article.excerpt|default:article.subtitle|truncatewords:15 }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ article.published_at|date:"M d, Y" }}</small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-eye me-1"></i>{{ article.views_count }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if articles.has_other_pages %}
+            <nav aria-label="Search results pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if articles.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ articles.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;&laquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in articles.paginator.page_range %}
+                        {% if articles.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > articles.number|add:'-3' and num < articles.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if articles.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ articles.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ articles.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Showing {{ articles.start_index }} - {{ articles.end_index }} of {{ articles.paginator.count }} results
+                    </small>
+                </div>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- No Results Found -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                        <h3 class="text-muted mb-3">No results found for "{{ query }}"</h3>
+                        <p class="text-muted mb-4">Try different keywords or browse our categories</p>
+                        
+                        <div class="suggestions mt-4">
+                            <h5 class="mb-3">Search Tips:</h5>
+                            <ul class="list-unstyled text-muted">
+                                <li class="mb-2">• Try more general keywords</li>
+                                <li class="mb-2">• Check your spelling</li>
+                                <li class="mb-2">• Use fewer keywords</li>
+                                <li>• Browse categories instead</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="{% url 'news:home' %}" class="btn btn-primary me-3">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                            <button class="btn btn-outline-primary" onclick="window.history.back()">
+                                <i class="fas fa-arrow-left me-2"></i>Go Back
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        {% else %}
+        <!-- Empty Search -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted mb-3">What are you looking for?</h3>
+                    <p class="text-muted mb-4">Enter keywords to search for news articles and stories</p>
+                    
+                    <!-- Categories Suggestions -->
+                    <div class="categories-suggestions mt-5">
+                        <h4 class="mb-4">Or browse by category:</h4>
+                        <div class="row">
+                            {% for category in categories|slice:":6" %}
+                            <div class="col-md-4 col-sm-6 mb-3">
+                                <a href="{% url 'news:category' category.name %}" class="btn btn-outline-primary w-100">
+                                    <i class="{{ category.icon|default:'fas fa-folder' }} me-2"></i>
+                                    {{ category.display_name }}
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Popular Searches -->
+{% if not query or not articles %}
+<section class="popular-searches py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h3 class="text-center mb-4">Popular Searches</h3>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="?q=IIT+Roorkee" class="btn btn-outline-secondary">IIT Roorkee</a>
+                    <a href="?q=local+events" class="btn btn-outline-secondary">Local Events</a>
+                    <a href="?q=weather" class="btn btn-outline-secondary">Weather</a>
+                    <a href="?q=business" class="btn btn-outline-secondary">Business</a>
+                    <a href="?q=education" class="btn btn-outline-secondary">Education</a>
+                    <a href="?q=government" class="btn btn-outline-secondary">Government</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Focus search input on page load if there's a query
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput && searchInput.value) {
+        searchInput.focus();
+        searchInput.select();
+    }
+
+    // Highlight search terms in results
+    function highlightSearchTerms() {
+        const query = "{{ query }}";
+        if (!query) return;
+        
+        const searchTerms = query.split(' ').filter(term => term.length > 2);
+        if (searchTerms.length === 0) return;
+        
+        const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
+        const elements = document.querySelectorAll('.card-title, .card-text');
+        
+        elements.forEach(element => {
+            const html = element.innerHTML;
+            const highlighted = html.replace(regex, '<mark class="search-highlight">$1</mark>');
+            element.innerHTML = highlighted;
+        });
+    }
+    
+    highlightSearchTerms();
+
+    // Search form enhancement
+    const searchForm = document.querySelector('.search-form-large');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            const input = this.querySelector('input[name="q"]');
+            if (!input.value.trim()) {
+                e.preventDefault();
+                input.focus();
+                showNotification('Please enter a search term', 'warning');
+            }
+        });
+    }
+
+    // Popular search buttons
+    document.querySelectorAll('.popular-searches .btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            window.location.href = url;
+        });
+    });
+
+    // Smooth scrolling for pagination
+    document.querySelectorAll('.pagination a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            
+            // Show loading state
+            document.body.classList.add('loading');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Navigate to page after scroll
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
+        });
+    });
+});
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Add to body
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Add loading state class to body
+document.body.classList.add('loading');
+window.addEventListener('load', function() {
+    document.body.classList.remove('loading');
+    highlightSearchTerms();
+});
+</script>
+
+<style>
+.search-page {
+    background-color: var(--bg-primary);
+}
+
+.search-header {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-form-large .form-control {
+    border-right: none;
+}
+
+.search-form-large .form-control:focus {
+    box-shadow: none;
+    border-color: var(--accent-color);
+}
+
+.search-form-large .btn {
+    border-left: none;
+}
+
+.search-highlight {
+    background-color: #fff3cd;
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .search-highlight {
+    background-color: #664d03;
+    color: #ffda6a;
+}
+
+.article-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.pagination .page-item .page-link {
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    margin: 0 2px;
+    border-radius: 6px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--accent-color);
+}
+
+/* Loading state */
+body.loading {
+    cursor: wait;
+}
+
+body.loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.loading::after {
+    content: 'Loading...';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1050;
+    background: var(--accent-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+[data-theme="dark"] body.loading::before {
+    background: rgba(26, 32, 44, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .search-header .display-5 {
+        font-size: 2rem;
+    }
+    
+    .search-form-large .input-group {
+        flex-direction: column;
+    }
+    
+    .search-form-large .form-control {
+        border-right: 1px solid var(--border-color);
+        border-bottom: none;
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+    
+    .search-form-large .btn {
+        border-left: 1px solid var(--border-color);
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+    
+    .article-card .row .col-md-4 {
+        height: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .search-header {
+        text-align: center;
+    }
+    
+    .search-header .display-5 {
+        font-size: 1.8rem;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+    }
+    
+    .pagination .page-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .popular-searches .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
+</style>
+{% endblock %}

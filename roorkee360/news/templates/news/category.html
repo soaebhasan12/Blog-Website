@@ -1,0 +1,418 @@
+{% extends 'roorkee360/base.html' %}
+{% load static %}
+
+{% block title %}{{ category.display_name }} News - Roorkee360{% endblock %}
+
+{% block meta_description %}Latest {{ category.display_name|lower }} news and stories from Roorkee. Stay updated with local news, events, and community updates.{% endblock %}
+
+{% block meta_keywords %}{{ category.display_name }}, Roorkee news, local news, {{ category.display_name|lower }} updates{% endblock %}
+
+{% block og_title %}{{ category.display_name }} News - Roorkee360{% endblock %}
+{% block og_description %}Stay updated with the latest {{ category.display_name|lower }} news from Roorkee{% endblock %}
+
+{% block body_class %}category-page{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<nav aria-label="breadcrumb" class="container py-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'news:home' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ category.display_name }}</li>
+    </ol>
+</nav>
+
+<!-- Category Header -->
+<section class="category-header py-4 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-3">
+                    {% if category.icon %}
+                    <i class="{{ category.icon }} fa-2x me-3" style="color: {{ category.color }};"></i>
+                    {% endif %}
+                    <h1 class="display-5 fw-bold mb-0">{{ category.display_name }}</h1>
+                </div>
+                {% if category.description %}
+                <p class="lead text-muted mb-0">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="article-count">
+                    <span class="badge bg-primary fs-6">{{ articles.paginator.count }} articles</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Articles Grid -->
+<section class="category-articles py-5">
+    <div class="container">
+        {% if articles %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="h4 mb-3">Latest {{ category.display_name }} Articles</h2>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for article in articles %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card article-card h-100 border-0 shadow-sm">
+                    {% if article.featured_image %}
+                    <img src="{{ article.featured_image.url }}" class="card-img-top" alt="{{ article.featured_image_alt|default:article.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-newspaper fa-2x text-white-50"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">{{ article.category.display_name }}</span>
+                            {% if article.is_breaking %}
+                            <span class="badge bg-danger me-2">Breaking</span>
+                            {% endif %}
+                        </div>
+                        
+                        <h3 class="h5 card-title">
+                            <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">{{ article.title }}</a>
+                        </h3>
+                        
+                        <p class="card-text text-muted">{{ article.excerpt|default:article.subtitle|truncatewords:20 }}</p>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ article.published_at|date:"M d, Y" }}</small>
+                            <div class="d-flex align-items-center">
+                                <small class="text-muted me-3">
+                                    <i class="fas fa-eye me-1"></i>{{ article.views_count }}
+                                </small>
+                                <a href="{{ article.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if articles.has_other_pages %}
+        <nav aria-label="Articles pagination" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if articles.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ articles.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;&laquo;</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+                {% endif %}
+
+                {% for num in articles.paginator.page_range %}
+                    {% if articles.number == num %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > articles.number|add:'-3' and num < articles.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if articles.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ articles.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ articles.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;&raquo;</span>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    Showing {{ articles.start_index }} - {{ articles.end_index }} of {{ articles.paginator.count }} articles
+                </small>
+            </div>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <!-- No Articles Found -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-newspaper fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted mb-3">No articles found in {{ category.display_name }}</h3>
+                    <p class="text-muted mb-4">Check back later for new content in this category</p>
+                    <a href="{% url 'news:home' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Other Categories Section -->
+<section class="other-categories py-5 bg-light">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="section-title">Browse Other Categories</h2>
+                <p class="text-muted">Explore more news from Roorkee</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for other_category in categories %}
+                {% if other_category.name != category.name and other_category.is_active %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                    <a href="{% url 'news:category' other_category.name %}" class="category-card text-decoration-none">
+                        <div class="card text-center border-0 shadow-sm h-100 hover-lift">
+                            <div class="card-body py-4">
+                                {% if other_category.icon %}
+                                <div class="category-icon mb-3">
+                                    <i class="{{ other_category.icon }} fa-2x" style="color: {{ other_category.color }};"></i>
+                                </div>
+                                {% endif %}
+                                <h3 class="h5 card-title mb-2">{{ other_category.display_name }}</h3>
+                                <p class="card-text text-muted small">{{ other_category.description|truncatewords:10 }}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Category card hover effect
+    const categoryCards = document.querySelectorAll('.category-card');
+    categoryCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.querySelector('.card').style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.querySelector('.card').style.transform = 'translateY(0)';
+        });
+    });
+
+    // Smooth scrolling for pagination
+    document.querySelectorAll('.pagination a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            
+            // Show loading state
+            document.body.classList.add('loading');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Navigate to page after scroll
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
+        });
+    });
+
+    // Update page title with category name when scrolled
+    let originalTitle = document.title;
+    window.addEventListener('scroll', function() {
+        const categoryHeader = document.querySelector('.category-header');
+        if (categoryHeader) {
+            const rect = categoryHeader.getBoundingClientRect();
+            if (rect.bottom < 0) {
+                document.title = "{{ category.display_name }} - Roorkee360";
+            } else {
+                document.title = originalTitle;
+            }
+        }
+    });
+});
+
+// Add loading state class to body
+document.body.classList.add('loading');
+window.addEventListener('load', function() {
+    document.body.classList.remove('loading');
+});
+</script>
+
+<style>
+.category-page {
+    background-color: var(--bg-primary);
+}
+
+.category-header {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.article-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.article-card .card-img-top {
+    transition: transform 0.3s ease;
+}
+
+.article-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.pagination .page-item .page-link {
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    margin: 0 2px;
+    border-radius: 6px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--accent-color);
+}
+
+.category-card .card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+}
+
+.category-card:hover .card {
+    background-color: var(--bg-secondary);
+}
+
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* Loading state */
+body.loading {
+    cursor: wait;
+}
+
+body.loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.loading::after {
+    content: 'Loading...';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1050;
+    background: var(--accent-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+[data-theme="dark"] body.loading::before {
+    background: rgba(26, 32, 44, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .category-header .display-5 {
+        font-size: 2rem;
+    }
+    
+    .category-header .lead {
+        font-size: 1.1rem;
+    }
+    
+    .article-card .row .col-md-4 {
+        height: 200px;
+    }
+    
+    .pagination .page-item .page-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .category-header {
+        text-align: center;
+    }
+    
+    .category-header .display-5 {
+        font-size: 1.8rem;
+    }
+    
+    .article-count {
+        margin-top: 1rem;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+    }
+    
+    .pagination .page-item {
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

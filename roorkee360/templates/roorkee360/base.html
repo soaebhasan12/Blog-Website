@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" class="{% block html_class %}{% endblock %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block title %}Roorkee360 - Your Local News Source{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Stay updated with the latest news, events, and stories from Roorkee. Your trusted local news platform.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}Roorkee news, local news, IIT Roorkee, Uttarakhand news, Roorkee360{% endblock %}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}Roorkee360{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Your trusted local news source for Roorkee{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% load static %}{% static 'images/logo-og.png' %}{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}Roorkee360{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Your trusted local news source for Roorkee{% endblock %}">
+    
+    <!-- Favicon -->
+    {% load static %}
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'roorkee360/base.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top" id="mainNavbar">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand" href="{% url 'news:home' %}">
+                <img src="{% static 'roorkee360/logo.png' %}" alt="Roorkee360 Logo" class="logo-img">
+                <span class="brand-text">Roorkee<span class="text-accent">360</span></span>
+            </a>
+            
+            <!-- Mobile menu button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navigation Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'news:home' %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    
+                    <!-- Dynamic Categories -->
+                    {% if categories %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-list"></i> Categories
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% for category in categories %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'news:category' category.name %}">
+                                        {% if category.icon %}<i class="{{ category.icon }}"></i>{% endif %}
+                                        {{ category.display_name }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">
+                            <i class="fas fa-info-circle"></i> About
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">
+                            <i class="fas fa-envelope"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex search-form me-3" method="GET" action="{% url 'news:search' %}">
+                    <div class="input-group">
+                        <input class="form-control search-input" type="search" name="q" 
+                               placeholder="Search news..." value="{{ request.GET.q }}">
+                        <button class="btn btn-search" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Dark Mode Toggle -->
+                <button class="btn btn-theme-toggle" id="themeToggle" title="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breaking News Banner -->
+    {% if breaking_news %}
+    <div class="breaking-news-banner" id="breakingNewsBanner">
+        <div class="container">
+            <div class="breaking-news-content">
+                <span class="breaking-label">
+                    <i class="fas fa-bolt"></i> BREAKING
+                </span>
+                <span class="breaking-text">
+                    <a href="{{ breaking_news.get_absolute_url }}" class="breaking-link">
+                        {{ breaking_news.title }}
+                    </a>
+                </span>
+                <button class="btn-close-breaking" onclick="closeBraking()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+        {% block content %}
+        <!-- Page content goes here -->
+        {% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5 class="footer-title">Roorkee360</h5>
+                        <p class="footer-desc">Your trusted source for local news, events, and stories from Roorkee. Stay connected with your community.</p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" title="Facebook">
+                                <i class="fab fa-facebook"></i>
+                            </a>
+                            <a href="#" class="social-link" title="Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="social-link" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="social-link" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-title">Quick Links</h6>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'news:home' %}">Home</a></li>
+                            <li><a href="#about">About Us</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="#privacy">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-title">Categories</h6>
+                        <ul class="footer-links">
+                            {% for category in categories|slice:":4" %}
+                            <li>
+                                <a href="{% url 'news:category' category.name %}">
+                                    {{ category.display_name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-title">Newsletter</h6>
+                        <p class="footer-desc-sm">Subscribe to get the latest news delivered to your inbox.</p>
+                        <form class="newsletter-form" method="POST" action="#subscribe">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="email" class="form-control" placeholder="Your email" required>
+                                <button class="btn btn-accent" type="submit">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="footer-divider">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="copyright">
+                        © {% now "Y" %} Roorkee360. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="dev-credit">
+                        Made with <i class="fas fa-heart text-accent"></i> for Roorkee
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" title="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+    
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{% static 'roorkee360/base.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
